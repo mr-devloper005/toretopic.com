@@ -91,31 +91,51 @@ export function TaskArchiveView({ task, posts, pagination, category, basePath }:
   const Icon = deck.icon
   const archiveVars = { '--archive-bg': preset.colors.background, '--archive-text': preset.colors.foreground, '--archive-surface': preset.colors.surface, '--archive-accent': preset.colors.accent } as CSSProperties
   const categoryLabel = category === 'all' ? 'All categories' : CATEGORY_OPTIONS.find((item) => item.slug === category)?.name || category
+  const articleHeroPosts = task === 'article' ? posts.slice(0, 3) : []
 
   return (
     <EditableSiteShell>
       <main style={archiveVars} className="bg-[var(--archive-bg)] text-[var(--archive-text)]">
-        <section className="mx-auto grid max-w-[var(--editable-container)] gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-20">
-          <div className="rounded-[2.5rem] border border-[var(--editable-border)] bg-[var(--archive-surface)] p-7 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--editable-border)] bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-[var(--archive-accent)]"><Icon className="h-4 w-4" /> {label}</div>
-            <h1 className="mt-5 max-w-4xl text-5xl font-black leading-[0.95] tracking-[-0.07em] sm:text-6xl">{voice?.headline || `Browse ${label}`}</h1>
+        <section className={`mx-auto grid max-w-[var(--editable-container)] gap-6 px-4 py-10 sm:px-6 lg:px-8 ${task === 'article' ? 'lg:grid-cols-[minmax(0,1fr)_340px] lg:py-12' : 'lg:grid-cols-[1.05fr_0.95fr] lg:py-20'}`}>
+          <div className={`${task === 'article' ? 'rounded-lg' : 'rounded-[2.5rem]'} border border-[var(--editable-border)] bg-[var(--archive-surface)] p-7 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10`}>
+            <div className={`inline-flex items-center gap-2 ${task === 'article' ? 'rounded-md' : 'rounded-full'} border border-[var(--editable-border)] bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-[var(--archive-accent)]`}><Icon className="h-4 w-4" /> {label}</div>
+            <h1 className={`${task === 'article' ? 'mt-5 max-w-3xl text-4xl leading-tight tracking-tight sm:text-5xl' : 'mt-5 max-w-4xl text-5xl leading-[0.95] tracking-[-0.07em] sm:text-6xl'} font-black`}>{voice?.headline || `Browse ${label}`}</h1>
             <p className="mt-6 max-w-2xl text-base leading-8 opacity-70">{voice?.description || SITE_CONFIG.description}</p>
-            <div className="mt-6 rounded-[1.5rem] border border-[var(--editable-border)] bg-white/55 p-4 text-sm font-bold leading-7 opacity-75">{deck.promise}</div>
+            <div className={`${task === 'article' ? 'rounded-lg' : 'rounded-[1.5rem]'} mt-6 border border-[var(--editable-border)] bg-white/55 p-4 text-sm font-bold leading-7 opacity-75`}>{deck.promise}</div>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href={basePath} className="rounded-full bg-[var(--archive-text)] px-5 py-3 text-sm font-black text-[var(--archive-bg)]">Browse all</Link>
-              <Link href="/search" className="rounded-full border border-[var(--editable-border)] px-5 py-3 text-sm font-black">Search posts</Link>
+              <Link href={basePath} className={`${task === 'article' ? 'rounded-md' : 'rounded-full'} bg-[var(--archive-text)] px-5 py-3 text-sm font-black text-[var(--archive-bg)]`}>Browse all</Link>
+              <Link href="/search" className={`${task === 'article' ? 'rounded-md' : 'rounded-full'} border border-[var(--editable-border)] px-5 py-3 text-sm font-black`}>Search posts</Link>
             </div>
           </div>
 
-          <form action={basePath} className="self-end rounded-[2rem] border border-[var(--editable-border)] bg-white/70 p-5 shadow-sm backdrop-blur">
-            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] opacity-55"><Filter className="h-4 w-4" /> Filter</div>
-            <select name="category" defaultValue={category} className="mt-4 h-12 w-full rounded-2xl border border-[var(--editable-border)] bg-white px-4 text-sm font-bold outline-none">
-              <option value="all">All categories</option>
-              {CATEGORY_OPTIONS.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}
-            </select>
-            <button className="mt-3 h-12 w-full rounded-2xl bg-[var(--archive-text)] text-sm font-black text-[var(--archive-bg)]">Apply</button>
-            <p className="mt-3 text-xs font-bold opacity-55">Showing: {categoryLabel}</p>
-          </form>
+          <aside className="grid content-stretch gap-5">
+            <form action={basePath} className={`${task === 'article' ? 'rounded-lg' : 'rounded-[2rem] self-end'} border border-[var(--editable-border)] bg-white/80 p-5 shadow-sm backdrop-blur`}>
+              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] opacity-55"><Filter className="h-4 w-4" /> Filter</div>
+              <select name="category" defaultValue={category} className={`${task === 'article' ? 'rounded-md' : 'rounded-2xl'} mt-4 h-12 w-full border border-[var(--editable-border)] bg-white px-4 text-sm font-bold outline-none`}>
+                <option value="all">All categories</option>
+                {CATEGORY_OPTIONS.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}
+              </select>
+              <button className={`${task === 'article' ? 'rounded-md' : 'rounded-2xl'} mt-3 h-12 w-full bg-[var(--archive-text)] text-sm font-black text-[var(--archive-bg)]`}>Apply</button>
+              <p className="mt-3 text-xs font-bold opacity-55">Showing: {categoryLabel}</p>
+            </form>
+
+            {articleHeroPosts.length ? (
+              <div className="rounded-lg border border-[var(--editable-border)] bg-white/80 p-5">
+                <h2 className="flex items-center gap-3 text-lg font-black tracking-tight">Latest Reads <span className="h-px flex-1 bg-black/10" /></h2>
+                <div className="mt-4 grid gap-4">
+                  {articleHeroPosts.map((post) => (
+                    <Link key={post.id || post.slug} href={`${basePath}/${post.slug}`} className="grid grid-cols-[72px_minmax(0,1fr)] gap-3">
+                      <img src={getImage(post)} alt="" className="h-16 w-[72px] object-cover" />
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--archive-accent)]">{getCategory(post, 'Article')}</p>
+                        <h3 className="mt-1 line-clamp-2 text-sm font-black leading-tight">{post.title}</h3>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </aside>
         </section>
 
         <section className="mx-auto max-w-[var(--editable-container)] px-4 pb-16 sm:px-6 lg:px-8">
