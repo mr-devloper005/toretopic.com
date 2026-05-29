@@ -7,6 +7,8 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:${APP_PORT:-3020}:3000"
+    networks:
+      - slot4_net
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
       interval: 30s
@@ -14,7 +16,6 @@ services:
       retries: 5
 
 networks:
-  default:
-    name: slot4_net
+  slot4_net:
     external: true
-
+    name: slot4_net
