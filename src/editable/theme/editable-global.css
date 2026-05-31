@@ -17,6 +17,11 @@ body {
   background-image: var(--slot4-body-gradient) !important;
 }
 
+body .max-w-7xl,
+body .max-w-6xl {
+  max-width: var(--editable-container) !important;
+}
+
 ::selection {
   background: color-mix(in oklab, var(--slot4-accent-fill) 22%, transparent);
   color: var(--slot4-page-text);
@@ -37,8 +42,41 @@ body {
 
 .article-content h2 {
   color: var(--slot4-accent);
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  line-height: 1.15;
 }
 
 .article-content a {
   color: var(--slot4-accent-fill);
+}
+
+.article-content p {
+  margin-top: 1.35rem;
+}
+
+.article-content > p:first-child::first-letter {
+  float: left;
+  margin: 0.1rem 0.75rem 0 0;
+  font-size: 5.25rem;
+  line-height: 0.78;
+  color: var(--slot4-page-text);
+}
+
+.article-content blockquote {
+  margin: 2rem 0;
+  border-left: 2px solid var(--slot4-accent);
+  background: #f6f6f6;
+  padding: 1.5rem 2rem;
+  font-size: 1.25rem;
+  font-style: italic;
+  line-height: 1.7;
+}
+
+.article-content img {
+  margin: 2rem 0;
+  width: 100%;
+  max-height: 560px;
+  object-fit: cover;
 }
