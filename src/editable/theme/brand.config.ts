@@ -4,12 +4,16 @@ import { getProductKind } from '@/design/factory/get-product-kind'
 
 const { recipe } = getFactoryState()
 const productKind = getProductKind(recipe)
+const envSiteName = process.env.NEXT_PUBLIC_SITE_NAME || process.env.NEXT_PUBLIC_BRAND_NAME
+const envTagline = process.env.NEXT_PUBLIC_SITE_TAGLINE
+const envDomain = process.env.NEXT_PUBLIC_SITE_DOMAIN
+const envBaseUrl = process.env.NEXT_PUBLIC_SITE_URL
 
 export const slot4BrandConfig = {
-  siteName: siteIdentity.name,
-  tagline: siteIdentity.tagline,
-  domain: siteIdentity.domain,
-  baseUrl: siteIdentity.url,
+  siteName: envSiteName || siteIdentity.name,
+  tagline: envTagline || siteIdentity.tagline,
+  domain: envDomain || siteIdentity.domain,
+  baseUrl: envBaseUrl || siteIdentity.url,
   productKind,
   ogImage: siteIdentity.ogImage,
   accents:
