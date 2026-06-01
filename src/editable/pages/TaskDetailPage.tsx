@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { CSSProperties } from 'react'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Bookmark, Building2, Camera, CheckCircle2, Download, ExternalLink, FileText, Globe2, Mail, MapPin, MessageCircle, Phone, Search, Tag, UserRound } from 'lucide-react'
+import { ArrowLeft, Bookmark, Building2, Camera, CheckCircle2, Download, ExternalLink, FileText, Globe2, Mail, MapPin, MessageCircle, Phone, Tag, UserRound } from 'lucide-react'
 import { buildPostMetadata, buildTaskMetadata } from '@/lib/seo'
 import { buildPostUrl, fetchArticleComments, fetchTaskPostBySlug, fetchTaskPosts } from '@/lib/task-data'
 import { getTaskConfig, SITE_CONFIG, type TaskKey } from '@/lib/site-config'
@@ -54,35 +54,46 @@ const getBody = (post: SitePost) => {
   return asText(content.body) || asText(content.description) || asText(content.details) || post.summary || 'Details will appear here once available.'
 }
 
+const escapeHtml = (value: string) => value
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;')
+
+const safeUrl = (value: string) => /^https?:\/\//i.test(value) ? value : '#'
+
+const linkifyMarkdown = (value: string) => value
+  .replace(/\[([^\]]+)]\((https?:\/\/[^\s)]+)\)/gi, (_match, label, url) => `<a href="${safeUrl(url)}" target="_blank" rel="nofollow noopener noreferrer">${label}</a>`)
+
+const linkifyText = (value: string) => linkifyMarkdown(value)
+  .replace(/(^|[\s(>])((https?:\/\/)[^\s<)]+)/gi, (_match, prefix, url) => `${prefix}<a href="${safeUrl(url)}" target="_blank" rel="nofollow noopener noreferrer">${url}</a>`)
+
+const hardenLinks = (html: string) => html.replace(/<a\s+([^>]*href=["'][^"']+["'][^>]*)>/gi, (_match, attrs) => {
+  let next = String(attrs).replace(/\s+on\w+=("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+  if (!/\starget=/i.test(next)) next += ' target="_blank"'
+  if (!/\srel=/i.test(next)) next += ' rel="nofollow noopener noreferrer"'
+  return `<a ${next}>`
+})
+
+const sanitizeHtml = (html: string) => hardenLinks(html
+  .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+  .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+  .replace(/<(iframe|object|embed)[^>]*>[\s\S]*?<\/\1>/gi, '')
+  .replace(/\s+on\w+=("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+  .replace(/(href|src)=(['"])javascript:[\s\S]*?\2/gi, '$1="#"'))
+
 const formatPlainText = (raw: string) => {
-  if (/<[a-z][\s\S]*>/i.test(raw)) return raw.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-  return raw.split(/\n{2,}/).map((part) => `<p>${part.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`).join('')
+  const value = raw.trim()
+  if (!value) return ''
+  if (/<[a-z][\s\S]*>/i.test(value)) return sanitizeHtml(linkifyMarkdown(value))
+  return value
+    .split(/\n{2,}/)
+    .map((part) => `<p>${linkifyText(escapeHtml(part).replace(/\n/g, '<br />'))}</p>`)
+    .join('')
 }
 
 const summaryText = (post: SitePost) => post.summary || asText(getContent(post).description) || asText(getContent(post).excerpt) || ''
-const buildAbsolutePostUrl = (task: TaskKey, post: SitePost) => `${SITE_CONFIG.baseUrl.replace(/\/$/, '')}${buildPostUrl(task, post.slug)}`
-const buildShareLinks = (url: string, title: string, summary: string) => [
-  {
-    name: 'Facebook',
-    href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-    label: 'f',
-  },
-  {
-    name: 'X',
-    href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
-    label: 'x',
-  },
-  {
-    name: 'LinkedIn',
-    href: `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(summary)}`,
-    label: 'in',
-  },
-  {
-    name: 'Pinterest',
-    href: `https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(summary)}`,
-    label: 'p',
-  },
-]
 const categoryOf = (post: SitePost, fallback: string) => asText(getContent(post).category) || post.tags?.[0] || fallback
 const mapSrcFor = (post: SitePost) => {
   const address = getField(post, ['address', 'location', 'city'])
@@ -123,96 +134,17 @@ function BackLink({ task }: { task: TaskKey }) {
 
 function ArticleDetail({ post, related, comments }: { post: SitePost; related: SitePost[]; comments: Array<{ id: string; name: string; comment: string; createdAt: string }> }) {
   const images = getImages(post)
-  const category = categoryOf(post, 'Article')
   return (
-    <section className="bg-white">
-      <div className="mx-auto max-w-[var(--editable-container)] px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-        <div className="mx-auto max-w-3xl text-center">
-          <BackLink task="article" />
-          <p className="mt-6 text-xs font-medium tracking-[0.08em] text-neutral-500">{category} <span className="mx-2 text-neutral-300">|</span> Editorial <span className="mx-2 text-neutral-300">|</span> {comments.length} comments</p>
-          <h1 className="mt-4 text-4xl font-black leading-tight tracking-tight text-[#111] sm:text-5xl">{post.title}</h1>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            {buildShareLinks(buildAbsolutePostUrl('article', post), post.title, summaryText(post)).map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--editable-border)] bg-white text-xs font-black uppercase text-[#111] transition hover:bg-[#f0f0f0]"
-                title={`Share on ${item.name}`}
-              >
-                {item.label}
-              </a>
-            ))}
-            <a
-              href={`mailto:?subject=${encodeURIComponent(post.title)}&body=${encodeURIComponent(`${buildAbsolutePostUrl('article', post)}\n\n${summaryText(post)}`)}`}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--editable-border)] bg-white text-[#111] transition hover:bg-[#f0f0f0]"
-              title="Share by email"
-            >
-              <Mail className="h-4 w-4" />
-            </a>
-          </div>
-        </div>
-
-        <div className="mt-9 grid gap-9 lg:grid-cols-[minmax(0,740px)_286px] lg:items-start">
-          <article className="min-w-0">
-            {images[0] ? <img src={images[0]} alt="" className="h-auto max-h-[520px] w-full rounded-none object-cover" /> : null}
-            <BodyContent post={post} />
-            <ArticleAuthorBox />
-            <EditableComments slug={post.slug} comments={comments} />
-          </article>
-          <ArticleDetailSidebar related={related} category={category} />
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function ArticleDetailSidebar({ related, category }: { related: SitePost[]; category: string }) {
-  const tagList = Array.from(new Set([category, ...related.flatMap((item) => item.tags || [])])).filter(Boolean).slice(0, 8)
-  return (
-    <aside className="space-y-7 lg:sticky lg:top-20">
-      <form action="/search" className="flex gap-0 bg-[#f6f6f6] p-6">
-        <input name="q" placeholder="Searching..." className="min-w-0 flex-1 bg-white px-4 py-3 text-sm outline-none" />
-        <button className="flex h-12 w-12 items-center justify-center bg-[var(--detail-accent)] text-white"><Search className="h-5 w-5" /></button>
-      </form>
-
-      <div className="bg-[#f6f6f6] p-7 text-center">
-        <p className="text-3xl font-black uppercase tracking-tight">NEWS</p>
-        <p className="mx-auto mt-3 max-w-[190px] text-xs font-semibold leading-5 text-neutral-600">Multi-layout news and editorial article reading template</p>
-        <Link href="/article" className="mt-6 inline-flex rounded-full bg-[var(--detail-accent)] px-5 py-3 text-xs font-black uppercase tracking-[0.12em] text-white">Read now</Link>
-      </div>
-
-      {related.length ? (
-        <div className="bg-[#f6f6f6] p-7">
-          <h2 className="flex items-center gap-4 text-2xl font-black tracking-tight">Recent Posts <span className="h-px flex-1 bg-black/10" /></h2>
-          <div className="mt-6 grid gap-4">
-            {related.slice(0, 5).map((item) => <RelatedCard key={item.id || item.slug} task="article" post={item} />)}
-          </div>
-        </div>
-      ) : null}
-
-      {tagList.length ? (
-        <div className="bg-[#f6f6f6] p-7">
-          <h2 className="flex items-center gap-4 text-2xl font-black tracking-tight">Tags <span className="h-px flex-1 bg-black/10" /></h2>
-          <div className="mt-5 flex flex-wrap gap-2">
-            {tagList.map((tag) => <Link key={tag} href={`/search?q=${encodeURIComponent(tag)}`} className="bg-white px-3 py-2 text-xs font-bold lowercase">{tag}</Link>)}
-          </div>
-        </div>
-      ) : null}
-    </aside>
-  )
-}
-
-function ArticleAuthorBox() {
-  return (
-    <section className="mt-10 flex gap-5 bg-[#f6f6f6] p-7">
-      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-md bg-white text-2xl font-black text-[var(--detail-accent)]">A</div>
-      <div>
-        <h2 className="text-lg font-black">Editorial Desk</h2>
-        <p className="mt-2 max-w-xl text-sm leading-7 text-neutral-700">Curated by the publication team to keep articles useful, readable, and easy to explore across the archive.</p>
-        <div className="mt-4 flex gap-3 text-sm font-black"><span>f</span><span>x</span><span>p</span></div>
-      </div>
+    <section className="mx-auto grid max-w-[var(--editable-container)] gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_350px] lg:px-8 lg:py-16">
+      <article className="min-w-0 rounded-[2.7rem] border border-[var(--editable-border)] bg-[var(--detail-surface)] p-5 shadow-[0_30px_90px_rgba(15,23,42,0.09)] sm:p-8 lg:p-12">
+        <BackLink task="article" />
+        <p className="mt-8 text-xs font-black uppercase tracking-[0.28em] text-[var(--detail-accent)]">{categoryOf(post, 'Article')}</p>
+        <h1 className="mt-4 text-4xl font-black leading-[0.98] tracking-[-0.07em] sm:text-5xl lg:text-7xl">{post.title}</h1>
+        {images[0] ? <img src={images[0]} alt="" className="mt-8 max-h-[620px] w-full rounded-[2rem] object-cover" /> : null}
+        <BodyContent post={post} />
+        <EditableComments slug={post.slug} comments={comments} />
+      </article>
+      <RelatedPanel task="article" post={post} related={related} />
     </section>
   )
 }
@@ -386,7 +318,7 @@ function ProfileDetail({ post, related }: { post: SitePost; related: SitePost[] 
 }
 
 function BodyContent({ post, compact = false }: { post: SitePost; compact?: boolean }) {
-  return <div className={`article-content mt-8 max-w-none ${compact ? 'text-base leading-8' : 'text-[15px] leading-8'} text-[#111]`} dangerouslySetInnerHTML={{ __html: formatPlainText(getBody(post)) }} />
+  return <div className={`article-content mt-8 max-w-none ${compact ? 'text-base leading-8' : 'text-lg leading-9'} opacity-80`} dangerouslySetInnerHTML={{ __html: formatPlainText(getBody(post)) }} />
 }
 
 function InfoGrid({ items }: { items: Array<[string, string, typeof MapPin]> }) {
@@ -443,7 +375,7 @@ function BadgeLine({ label, value }: { label: string; value: string }) {
   return <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm"><span className="font-black uppercase tracking-[0.16em] opacity-60">{label}</span><span className="font-black">{value}</span></div>
 }
 
-function RelatedPanel({ task, post: _post, related, compact = false }: { task: TaskKey; post: SitePost; related: SitePost[]; compact?: boolean }) {
+function RelatedPanel({ task, post, related, compact = false }: { task: TaskKey; post: SitePost; related: SitePost[]; compact?: boolean }) {
   const taskConfig = getTaskConfig(task)
   return (
     <aside className="min-w-0 space-y-5">
@@ -453,6 +385,7 @@ function RelatedPanel({ task, post: _post, related, compact = false }: { task: T
           <div className="mt-4 grid gap-3 text-sm font-bold opacity-75">
             <p className="inline-flex items-center gap-2"><Tag className="h-4 w-4" /> Task: {taskConfig?.label || task}</p>
             <p className="inline-flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> Site: {SITE_CONFIG.name}</p>
+            {post.publishedAt ? <p>Published: {new Date(post.publishedAt).toLocaleDateString()}</p> : null}
           </div>
         </div>
       ) : null}
