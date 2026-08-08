@@ -2,11 +2,9 @@ import { TaskDetailPage } from "@/components/tasks/task-detail-page";
 import { buildPostMetadata, buildTaskMetadata } from "@/lib/seo";
 import { fetchTaskPostBySlug } from "@/lib/task-data";
 
+export const dynamic = 'force-dynamic'
 export const revalidate = 3;
 
-export async function generateStaticParams() {
-  return [];
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
