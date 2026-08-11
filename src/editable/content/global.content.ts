@@ -3,34 +3,34 @@ import { slot4BrandConfig } from '@/editable/theme/brand.config'
 export const globalContent = {
   site: {
     name: slot4BrandConfig.siteName,
-    tagline: slot4BrandConfig.tagline || 'Independent reading platform',
+    tagline: slot4BrandConfig.tagline || 'Businesses, Products & Service Discovery',
     domain: slot4BrandConfig.domain,
     baseUrl: slot4BrandConfig.baseUrl,
   },
   nav: {
-    tagline: 'Independent article journal',
+    tagline: 'Businesses, Products & Service Discovery',
     primaryLinks: [
+      { label: 'Home', href: '/' },
       { label: 'Articles', href: '/article' },
-      { label: 'Search', href: '/search' },
-      { label: 'About', href: '/about' },
+      { label: 'About Us', href: '/about' },
       { label: 'Contact', href: '/contact' },
     ],
     actions: {
-      primary: { label: 'Start exploring', href: '/' },
-      secondary: { label: 'Submit', href: '/contact' },
+      primary: { label: 'Browse listings', href: '/' },
+      secondary: { label: 'Contact us', href: '/contact' },
     },
   },
   footer: {
-    tagline: 'Article-led reading, research, and discovery.',
-    description: 'A focused article publication for thoughtful reads, practical guides, topical explainers, and curated editorial picks.',
+    tagline: 'Your trusted discovery platform.',
+    description: 'A curated directory for discovering businesses, reading insightful articles, and connecting with services that matter to you.',
     columns: [
       {
         title: 'Explore',
         links: [
           { label: 'Articles', href: '/article' },
-          { label: 'Latest reads', href: '/article' },
-          { label: 'Search archive', href: '/search' },
-          { label: 'Contact editorial', href: '/contact' },
+          { label: 'Latest posts', href: '/article' },
+          { label: 'Search', href: '/search' },
+          { label: 'Contact us', href: '/contact' },
         ],
       },
       {
@@ -41,10 +41,10 @@ export const globalContent = {
         ],
       },
     ],
-    bottomNote: 'Built for clean article discovery.',
+    bottomNote: 'Your go-to platform for business discovery.',
   },
   commonLabels: {
-    readMore: 'Read more',
+    readMore: 'Read article',
     viewAll: 'View all',
     explore: 'Explore',
     latest: 'Latest',

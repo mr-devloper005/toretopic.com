@@ -18,15 +18,15 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <section className={cn('rounded-[2rem] border border-current/10 bg-current/[0.03] p-8 text-center', className)}>
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-current/10">
-        <SearchX className="h-6 w-6" />
+    <section className={cn('rounded-sm border border-[var(--editable-border)] bg-white/70 p-7 text-center', className)}>
+      <div className="mx-auto flex h-12 w-12 items-center justify-center bg-[var(--slot4-accent)] text-white">
+        <SearchX className="h-5 w-5" />
       </div>
-      <h2 className="mt-5 text-2xl font-semibold tracking-[-0.03em]">{title}</h2>
-      <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-current/65">{description}</p>
-      <Link href={actionHref} className="mt-6 inline-flex items-center gap-2 rounded-full border border-current/15 px-5 py-3 text-sm font-semibold transition hover:bg-current hover:text-background">
+      <h2 className="mt-4 text-xl font-bold tracking-tight">{title}</h2>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 opacity-60">{description}</p>
+      <Link href={actionHref} className="mt-5 inline-flex items-center gap-1.5 border border-[var(--editable-border)] bg-white px-4 py-2 text-sm font-bold transition hover:bg-[var(--slot4-accent)] hover:text-white">
         {actionLabel}
-        <ArrowRight className="h-4 w-4" />
+        <ArrowRight className="h-3.5 w-3.5" />
       </Link>
     </section>
   )
@@ -37,7 +37,7 @@ export function TaskEmptyState({ taskLabel = 'posts', className }: { taskLabel?:
     <EmptyState
       className={className}
       title={`No ${taskLabel} available yet`}
-      description={`Published ${taskLabel} from the master panel will appear here automatically. The page layout stays ready even when the feed is empty.`}
+      description={`Published ${taskLabel} will appear here automatically. The page layout stays ready even when the feed is empty.`}
       actionLabel="Explore the site"
       actionHref="/"
     />
@@ -49,7 +49,7 @@ export function ContactSuccessState({ className }: { className?: string }) {
     <EmptyState
       className={className}
       title="Message received"
-      description="Thanks for reaching out. Your request has been saved and routed through the contact workflow."
+      description="Thanks for reaching out. Your request has been saved and our team will review it shortly."
       actionLabel="Return home"
       actionHref="/"
     />
